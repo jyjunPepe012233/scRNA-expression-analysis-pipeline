@@ -1,3 +1,6 @@
+# README
+[![ko](https://img.shields.io/badge/lang-한국어-blue.svg)](README.ko.md)
+
 # Overview
 
 This project is a program for analyzing single-cell RNA expression data.
@@ -119,3 +122,4 @@ Supported visualizations include:
 Through these visualizations, it is possible to confirm:
 - whether low-quality cells and outliers were effectively removed
 - how normalization and stabilization changed expression distributions
+
