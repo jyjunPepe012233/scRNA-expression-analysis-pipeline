@@ -1,3 +1,6 @@
+# README
+[![en](https://img.shields.io/badge/lang-English-orange.svg)](README.en.md)
+
 # Overview
 
 본 프로젝트는 단일 세포에 대한 RNA 발현량 데이터를 분석하는 프로그램입니다.
