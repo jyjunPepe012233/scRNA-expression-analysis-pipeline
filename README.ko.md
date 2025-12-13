@@ -1,11 +1,59 @@
-# README
+# scRNA Expression Analysis Pipeline
 [![en](https://img.shields.io/badge/lang-English-orange.svg)](README.en.md)
 
 # Overview
 
-본 프로젝트는 단일 세포에 대한 RNA 발현량 데이터를 분석하는 프로그램입니다.
+본 프로젝트는 raw scRNA-seq data를
+<br >**분석 가능한 상태로 만들기 위한 전처리 및 검증 파이프라인**입니다.
 
-[single-cell-pipeline](https://github.com/jyjunPepe012233/single-cell-pipeline) 레포지토리를 통해 학습한 내용을 활용하여 개발되었습니다.
+단일 세포 RNA 발현량 분석 과정에서
+
+- 왜 raw data만으로 분석을 시작할 수 없는지,
+- 그리고 분석 가능한 데이터로 가공하기 위해 어떤 판단을 거쳐하는지를
+
+학습하기 위해 프로젝트를 진행하였습니다.
+
+[single-cell-pipeline](https://github.com/jyjunPepe012233/single-cell-pipeline) 레포지토리에서 학습한 **4단계 데이터 처리 파이프라인과 사고 구조**를 바탕으로,
+<br> **raw scRNA-seq data(.mtx, .tsv)를 입력으로 다룰 수 있도록 확장**한 프로젝트입니다.
+
+# Learning Motivation
+
+이 프로그램의 파이프라인을 개발하기 위해, 저는 다음과 같이 질문했습니다.
+
+- **raw scRNA-seq data를 바로 분석할 수 없는 이유는 무엇인가?**
+- 세포의 품질이란 무엇이며, **저품질 세포를 제거하면 데이터에 어떤 변화가 생기는가?**
+- 세포별 유전자 발현량 측정 시, **해당 값을 정규화하는 것은 무엇을 위한 과정인가?**
+- 유전자별 발현량 분포 측정 시, log를 통해 **분포를 안정화(stabilization)하는 것은 무엇을 위한 과정인가?**
+
+이러한 질문들을 통해 단일 세포 분석에 대한 지식을 쌓았으며,
+<br> 데이터 처리 및 분석 과정에서 겪는 고민을 직접 경험할 수 있었습니다.
+
+# What This Pipeline Does
+
+- raw scRNA-seq data (.mtx, .tsv) 로드 (`/src/data_io.py`)
+- 세포 단위 품질 관리 (`/src/schema.py`)
+- library-size 정규화 및 log 안정화 (`/src/normalization.py`)
+- 전처리 전·후 분포 비교를 통한 검증 (`/src/visualization.py`)
+
+실제 연구 현장의 세세한 요구 사항에 따라 개발하기 보다 **연구 과정에서 겪을 수 있는 핵심 문제들을 직접 경험**하고,
+<br> 이에 대한 스스로의 해결 방법과 그 근거를 남기며 생물정보학과 가까워지는 것을 목표로 임했습니다.
+
+# Analysis Pipeline
+
+## Step 1. Data Loading & Structural Validation
+
+인터넷에서 제공받은 실제 scRNA-seq data를 사용했습니다.
+
+.mtx 형식의 데이터를 DataFrame으로 변환하는 모듈을 개발하였습니다.
+
+## Step 2. Quality Control (QC)
+
+`describe()`를 통해 총 RNA 발현량이 0인 세포가 다수 존재함을 확인했습니다.
+
+캡쳐 또는 시퀀싱 과정에서 원활히 측정되지 않았거나 죽은 세포로 판단하였고, RNA 발현량이 특정 수치 미만인 세포들을 분석 대상에서 제외하였습니다.
+
+또한, 데이터세트마다 값의 범위 또는 데이터의 특징이 다르다는 점을 파악하여
+<br> 프로그램의 엔트리 포인트에서 품질 최소 기준(`quality_min_threshold`) 또는 이상치 기준(`max_value_limit`) 등의 수치들을 설정할 수 있게 하였습니다.
 
 ### Raw Data vs After QC (Total Expression per Cell)
 
@@ -14,98 +62,49 @@
   <img width=40% alt="visualization_b_raw" src="./images/02_total_expression_per_cell_after_qc.png"/>
 </p>
 
+## Step 3. Normalization & Stabilization
+
+raw scRNa-seq data는 시퀀싱 깊이 등으로 인해 세포마다 총 발현량의 규모가 다릅니다.
+
+이는 정규화하지 않은 상태에서 RNA 발현량을 비교하는 것이 의미가 없음을 뜻하므로,
+<br> 비교 전에, 각 세포의 총 발현량을 동일한 규모(기본 10,000, 설정 가능)로 정규화하였습니다.
+
+또한, 분포한 데이터의 상대적 차이가 비교 가능한 규모로 표현될 수 있도록
+<br> numpy의 `log1p`를 통해 분포를 안정화(stabilization)하였습니다.
+
 ### Raw Data vs After Processing (Expression Distribution of Specific RNA)
+
 <p align='left'>
   <img width=40% alt="visualization_b_raw" src="./images/03_total_expression_per_cell_before_stabilized.png"/>
   <img width=40% alt="visualization_b_raw" src="./images/04_total_expression_per_cell_after_stabilized.png"/>
 </p>
 
-# Project Structure
+## Step 4. Visualization
 
-```
-scRNA-expression-analysis-pipeline
-├── data
-│   ├── comparable
-│   │   └── Bladder-10X_P4_4
-│   │       └── comparable_Bladder-10X_P4_4.csv
-│   ├── processed
-│   │   └── Bladder-10X_P4_4
-│   │       └── processed_Bladder-10X_P4_4.csv
-│   └── raw
-│       ├── Bladder-10X_P4_3
-│       │   ├── barcodes.tsv
-│       │   ├── genes.tsv
-│       │   └── matrix.mtx
-│       ├── Bladder-10X_P4_4
-│       ├── Heart-10X_P7_4
-│       └── ...
-├── images
-└── src
-    ├── data_io.py
-    ├── main.py
-    ├── normalization.py
-    ├── pipeline.py
-    ├── quality_control.py
-    └── visualization.py
-```
+QC 및 정규화 과정의 효과를 검증하기 위해 처리 과정 전, 후를 시각화하여 비교하였습니다.
 
-# Key Features
-- `/src/main.py`의 파라미터를 조작하여 28개의 데이터세트를 분석/시각화할 수 있습니다.
-- .mtx 파일과 .tsv 파일 기반의 데이터세트를 활용합니다.
-- 데이터 로드, QC, 정규화 및 안정화, 시각화 단계를 거칩니다.
-- 세포별 유전자 발현량 히스토그램, 특정 유전자의 발현량 히스토그램을 제공합니다.
+처리가 끝난 데이터를 다음과 같이 시각화하였으며, 결과는 `/images/` 폴더에 저장되어 있습니다.
 
-# Step 1. Data Loading & Validation
+- 세포별 총 발현량 분포 (QC 전 / 후)
+- 특정 유전자의 발현 분포 (전체 처리 전/ 후)
 
-`/src/data_io.py` 패키지는 expression matrix 데이터 구조를 데이터프레임으로 파싱합니다.
+# What I Learned
 
-해당 패키지는 아래와 같은 기능을 제공합니다.
+이 프로젝트를 통해 다음 질문에 답할 수 있게 되었습니다.
 
-- .mtx 파일과 .tsv 파일 기반의 데이터를 하나의 .csv로 변환
-- .csv로 변환된 파일을 자동으로 재사용 (캐시)
-- 처리가 끝난 파일을 .csv로 한번 더 저장 (기록)
+- **raw scRNA-seq data를 바로 분석할 수 없는 이유는 무엇인가?**
+    - 실제 측정 데이터는 예상과 다른 형식을 가질 수 있으며, 결측치, 이상치 등의 값이 존재하므로
+    데이터의 정확성과 일관성을 높이기 위해서는 반드시 데이터를 전처리하는 과정이 필요하다.
 
-실제 연구 환경을 상상하며 개발하였습니다.
+- 세포의 품질이란 무엇이며, **저품질 세포를 제거하면 데이터에 어떤 변화가 생기는가?**
+    - 캡쳐 또는 시퀀싱 과정에서 문제가 생겼거나 이미 죽어 RNA 발현량이 0으로 측정된 세포를 분석하는 것은 의미가 없으므로,
+    이 세포는 저품질 데이터로 간주하고 데이터세트에서 제거한다
+    - 이를 통해 의미 있는 데이터만을 비교할 수 있게 된다.
+ 
+- 세포별 유전자 발현량 측정 시, **해당 값을 정규화하는 것은 무엇을 위한 과정인가?**
+    - 시퀀싱을 통해 세포의 RNA 발현량을 측정하면 시퀀싱 깊이 차이로 인해 다른 세포와 발현량의 규모가 다를 수 있다.
+    - 전체 RNA 발현량(발현량 규모)이 다르면 특정 RNA 발현량의 상대적 차이를 비교할 수 없으므로, 일정한 수준으로 발현량을 정규화시킬 필요가 있다.
 
-# Step 2. Quality Control (QC)
-
-모든 데이터가 분석에 적합하지 않았습니다.
-
-RNA의 전체 발현량이 0인 세포가 있었는데, 해당 세포는 죽은 세포이거나 캡쳐 과정에 문제가 있었던 세포라고 생각했습니다.
-
-프로그램의 엔트리 포인트(entry point)에서 설정한 기준(quality minimum threshold) 미달 세포를 저품질 세포로 간주하여 제외하였습니다.
-
-데이터의 품질 기준 외의 조건 또한 엔트리 포인트에서 설정하여 데이터를 원하는 대로 분석할 수 있습니다.
-
-`/src/schema.py`는 아래 기능을 제공합니다.
-
-- Non-Numeric 데이터를 Nan으로 대체
-- 저품질 세포 데이터 삭제 (세포별 전체 발현량 기준)
-- 이상치 제거 (전체 발현량이 과하게 높은 데이터 제거)
-
-# Step 3. Normalization
-
-시퀀싱 깊이 차이 등으로 인해 총 발현량의 규모가 실제와 다르게 측정될 수 있다고 배웠습니다.
-
-이를 보정하고 **유전자별 발현량 비율**을 제대로 파악하기 위해 특정 규모로 RNA 발현량을 정규화하였습니다.
-
-`/src/normalization.py`는 아래 기능을 제공합니다.
-
-- Library-size normalization: 각 세포의 총 발현량을 동일한 규모로 맞춤 (규모 설정 가능, 기본 10,000
-- log1p 변환: log를 통해 분포를 안정화하여 극단값의 영향을 줄임
-
-정규화 및 안정화(stabilization) 과정을 거친 데이터는
-`/data/comparable/` 폴더에 .csv 형태로 저장됩니다.
-
-# Step 4. Visualization & Validation
-
-전처리 과정이 실제로 의미 있었는지 검증하기 위해 데이터를 시각화하였습니다.
-
-`/src/visualization.py`에서 제공한 기능은 다음과 같으며,
-`/images/` 폴더에서 예시 이미지를 확인할 수 있습니다.
-
-- 세포별 전체 발현량 히스토그램 (QC 전, 후)
-- 특정 유전자의 발현량 분포 비교 (전체 처리 과정 전, 후)
-
-시각화를 통해 저품질 세포 및 이상치가 실제로 제거되었는지 확인하였으며,
-정규화 및 안정화 과정을 거친 데이터의 분포가 어떻게 바뀌었는지 확인할 수 있었습니다.
+- 유전자별 발현량 분포 측정 시, log를 통해 **분포를 안정화(stabilization)하는 것은 무엇을 위한 과정인가?**
+    - 전체 세포에 대한 특정 RNA 발현량을 나타내었을 때, 몇 극단값이 전체 분포에 영향을 끼치므로 log를 사용하여 분포를 안정화시킬 필요가 있다.
+    - 안정화 시 각 세포에 대한 특정 RNA 발현량의 상대적 차이를 더욱 쉽게 파악할 수 있다.
