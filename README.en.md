@@ -1,125 +1,127 @@
-# README
+# scRNA Expression Analysis Pipeline
+
 [![ko](https://img.shields.io/badge/lang-한국어-blue.svg)](README.ko.md)
 
 # Overview
 
-This project is a program for analyzing single-cell RNA expression data.
+This project is a **preprocessing and validation pipeline designed to transform raw scRNA-seq data into an analyzable state**.
 
-It was developed by applying the concepts and workflow learned from the
-[single-cell-pipeline](https://github.com/jyjunPepe012233/single-cell-pipeline) repository,
-which focuses on understanding the step-by-step structure of single-cell data analysis.
+In single-cell RNA expression analysis, this project aims to understand:
+
+* why raw scRNA-seq data cannot be analyzed directly, and
+* what kinds of decisions and transformations are required to make the data suitable for analysis.
+
+The pipeline was developed based on the **four-step data processing workflow and analytical mindset** learned from the
+[`single-cell-pipeline`](https://github.com/jyjunPepe012233/single-cell-pipeline) repository,
+and was extended to **directly handle raw scRNA-seq data (.mtx, .tsv) as input**.
+
+# Learning Motivation
+
+To design this pipeline, I began by asking the following questions:
+
+* **Why can’t raw scRNA-seq data be analyzed directly?**
+* What does *cell quality* mean, and **how does removing low-quality cells change the dataset?**
+* When measuring gene expression per cell, **what is the purpose of normalization?**
+* When examining gene expression distributions, **why is log-based stabilization necessary?**
+
+Through these questions, I gradually built my understanding of single-cell analysis and
+experienced the practical challenges involved in real data preprocessing and validation.
+
+# What This Pipeline Does
+
+* Loads raw scRNA-seq data (.mtx, .tsv) (`/src/data_io.py`)
+* Performs cell-level quality control (`/src/schema.py`)
+* Applies library-size normalization and log-based stabilization (`/src/normalization.py`)
+* Validates preprocessing decisions through before/after distribution comparisons (`/src/visualization.py`)
+
+Rather than focusing on reproducing every detail of real research environments,
+this project emphasizes **directly experiencing the core problems encountered during analysis**
+and documenting my own solutions and reasoning as a way to move closer to bioinformatics practice.
+
+# Analysis Pipeline
+
+## Step 1. Data Loading & Structural Validation
+
+Real scRNA-seq datasets obtained from public sources were used.
+
+A module was implemented to convert mtx-based datasets into a DataFrame structure,
+allowing further inspection and processing.
+
+## Step 2. Quality Control (QC)
+
+Using `describe()`, I observed that many cells had a total RNA expression value of zero.
+
+These cells were considered likely to be:
+
+* cells that failed during capture or sequencing, or
+* dead cells with no meaningful RNA expression.
+
+Cells with total expression below a specified threshold were therefore excluded from analysis.
+
+Since different datasets have different value ranges and characteristics,
+the program allows configuration of parameters such as:
+
+* minimum quality threshold (`quality_min_threshold`)
+* outlier cutoff (`max_value_limit`)
+
+These parameters can be adjusted at the program entry point.
 
 ### Raw Data vs After QC (Total Expression per Cell)
 
 <p align='left'>
-  <img width=40% alt="visualization_b_raw" src="./images/01_total_expression_per_cell_raw_data.png"/>
-  <img width=40% alt="visualization_b_raw" src="./images/02_total_expression_per_cell_after_qc.png"/>
+  <img width=40% src="./images/01_total_expression_per_cell_raw_data.png"/>
+  <img width=40% src="./images/02_total_expression_per_cell_after_qc.png"/>
 </p>
 
-### Raw Data vs After Processing (Expression Distribution of Specific RNA)
+## Step 3. Normalization & Stabilization
+
+Raw scRNA-seq data often shows large differences in total expression per cell
+due to variations in sequencing depth and technical factors.
+
+Comparing gene expression values without addressing this issue is not meaningful.
+Therefore, before comparison:
+
+* each cell’s total expression was normalized to the same scale
+  (default: 10,000, configurable), and
+* expression distributions were stabilized using NumPy’s `log1p` function.
+
+This stabilization allows relative differences in gene expression
+to be compared on a more interpretable scale.
+
+### Raw Data vs After Processing (Expression Distribution of a Representative Gene)
+
 <p align='left'>
-  <img width=40% alt="visualization_b_raw" src="./images/03_total_expression_per_cell_before_stabilized.png"/>
-  <img width=40% alt="visualization_b_raw" src="./images/04_total_expression_per_cell_after_stabilized.png"/>
+  <img width=40% src="./images/03_total_expression_per_cell_before_stabilized.png"/>
+  <img width=40% src="./images/04_total_expression_per_cell_after_stabilized.png"/>
 </p>
 
-# Project Structure
+## Step 4. Visualization
 
-```
-scRNA-expression-analysis-pipeline
-├── data
-│   ├── comparable
-│   │   └── Bladder-10X_P4_4
-│   │       └── comparable_Bladder-10X_P4_4.csv
-│   ├── processed
-│   │   └── Bladder-10X_P4_4
-│   │       └── processed_Bladder-10X_P4_4.csv
-│   └── raw
-│       ├── Bladder-10X_P4_3
-│       │   ├── barcodes.tsv
-│       │   ├── genes.tsv
-│       │   └── matrix.mtx
-│       ├── Bladder-10X_P4_4
-│       ├── Heart-10X_P7_4
-│       └── ...
-├── images
-└── src
-    ├── data_io.py
-    ├── main.py
-    ├── normalization.py
-    ├── pipeline.py
-    ├── quality_control.py
-    └── visualization.py
-```
+To verify that the QC and normalization steps had meaningful effects,
+the data was visualized and compared before and after preprocessing.
 
-# Key Features
+The following visualizations are provided and saved in the `/images/` directory:
 
-- Up to 28 datasets can be analyzed and visualized by adjusting parameters in `/src/main.py`
-- Supports scRNA-seq datasets based on .mtx and .tsv files
-- Implements a full preprocessing workflow: Data loading, Quality control, Normalization and Stabilization, Visualization
-- Provides: Cell-level total expression histograms, Gene-level expression distribution histograms
+* cell-level total expression distributions (before / after QC)
+* gene-level expression distributions (before / after full processing)
 
-# Step 1. Data Loading & Validation
+# What I Learned
 
-The `/src/data_io.py` module parses expression matrix data into a DataFrame.
+Through this project, I was able to answer the following questions:
 
-It provides the following functionality:
+* **Why can’t raw scRNA-seq data be analyzed directly?**
+  Raw measurement data often contains missing values, outliers, and inconsistent structures.
+  Preprocessing is necessary to ensure data reliability and comparability.
 
-- Converts .mtx and .tsv-based datasets into a single .csv file
-- Automatically reuses converted .csv files to avoid redundant processing (caching)
-- Saves processed files again for record-keeping and reproducibility
+* What does *cell quality* mean, and **how does removing low-quality cells change the data?**
+  Cells with zero RNA expression, often caused by capture or sequencing failures,
+  do not provide meaningful information and should be excluded.
+  Removing such cells enables more reliable comparisons across the dataset.
 
-This design was implemented with real research environments in mind,
-where data reuse and traceability are important.
+* When measuring gene expression per cell, **why is normalization necessary?**
+  Differences in sequencing depth lead to different total expression scales per cell.
+  Without normalization, relative gene expression differences cannot be compared meaningfully.
 
-# Step 2. Quality Control (QC)
-
-Not all cells are suitable for analysis.
-
-During exploration, cells with zero total RNA expression were observed.
-Such cells were considered likely to be:
-- dead cells, or
-- cells affected by technical issues during capture or sequencing
-
-Cells below a user-defined quality minimum threshold, specified at the program entry point,
-are treated as low-quality cells and excluded from further analysis.
-
-Additional filtering conditions can also be configured at the entry point
-to flexibly adjust analysis criteria depending on the dataset.
-
-The `/src/schema.py` module provides the following functionality:
-- Converts non-numeric values to NaN
-- Removes low-quality cells based on total expression thresholds
-
-Filters out extreme outliers with abnormally high total expression
-
-# Step 3. Normalization
-
-Due to differences in sequencing depth and other technical factors,
-total expression levels may not accurately reflect biological proportions.
-
-To address this and enable meaningful comparison of relative gene expression,
-the pipeline applies normalization.
-
-The `/src/normalization.py` module provides:
-
-- Library-size normalization: Each cell is scaled to the same total expression level (configurable, default = 10,000)
-- log1p transformation: Stabilizes the distribution and reduces the impact of extreme values
-
-The normalized and stabilized data are saved as .csv files in the
-`/data/comparable/` directory.
-
-Step 4. Visualization & Validation
-
-Visualization is used as a validation tool, not for presentation purposes.
-
-The `/src/visualization.py` module provides visualizations that allow verification of preprocessing decisions.
-Example outputs can be found in the `/images/ directory`.
-
-Supported visualizations include:
-- Cell-level total expression histograms (before and after QC)
-- Gene-level expression distribution comparisons (before and after processing)
-
-Through these visualizations, it is possible to confirm:
-- whether low-quality cells and outliers were effectively removed
-- how normalization and stabilization changed expression distributions
-
+* When analyzing gene expression distributions, **why is log-based stabilization needed?**
+  Extreme values can dominate the distribution and obscure relative differences.
+  Log-based stabilization reduces this effect and makes expression patterns easier to interpret.
