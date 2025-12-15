@@ -69,8 +69,8 @@ These parameters can be adjusted at the program entry point.
 ### Raw Data vs After QC (Total Expression per Cell)
 
 <p align='left'>
-  <img width=40% src="./images/01_total_expression_per_cell_raw_data.png"/>
-  <img width=40% src="./images/02_total_expression_per_cell_after_qc.png"/>
+  <img width=40% src="./images/A_01_total_expression_per_cell_raw_data.png"/>
+  <img width=40% src="./images/A_02_total_expression_per_cell_after_qc.png"/>
 </p>
 
 ## Step 3. Normalization & Stabilization
@@ -91,8 +91,8 @@ to be compared on a more interpretable scale.
 ### Raw Data vs After Processing (Expression Distribution of a Representative Gene)
 
 <p align='left'>
-  <img width=40% src="./images/03_total_expression_per_cell_before_stabilized.png"/>
-  <img width=40% src="./images/04_total_expression_per_cell_after_stabilized.png"/>
+  <img width=40% src="./images/A_03_total_expression_per_cell_before_stabilized.png"/>
+  <img width=40% src="./images/A_04_total_expression_per_cell_after_stabilized.png"/>
 </p>
 
 ## Step 4. Visualization

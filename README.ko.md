@@ -58,8 +58,8 @@
 ### Raw Data vs After QC (Total Expression per Cell)
 
 <p align='left'>
-  <img width=40% alt="visualization_b_raw" src="./images/01_total_expression_per_cell_raw_data.png"/>
-  <img width=40% alt="visualization_b_raw" src="./images/02_total_expression_per_cell_after_qc.png"/>
+  <img width=40% alt="visualization_b_raw" src="./images/A_01_total_expression_per_cell_raw_data.png"/>
+  <img width=40% alt="visualization_b_raw" src="./images/A_02_total_expression_per_cell_after_qc.png"/>
 </p>
 
 ## Step 3. Normalization & Stabilization
@@ -75,8 +75,8 @@ raw scRNa-seq data는 시퀀싱 깊이 등으로 인해 세포마다 총 발현�
 ### Raw Data vs After Processing (Expression Distribution of Specific RNA)
 
 <p align='left'>
-  <img width=40% alt="visualization_b_raw" src="./images/03_total_expression_per_cell_before_stabilized.png"/>
-  <img width=40% alt="visualization_b_raw" src="./images/04_total_expression_per_cell_after_stabilized.png"/>
+  <img width=40% alt="visualization_b_raw" src="./images/A_03_total_expression_per_cell_before_stabilized.png"/>
+  <img width=40% alt="visualization_b_raw" src="./images/A_04_total_expression_per_cell_after_stabilized.png"/>
 </p>
 
 ## Step 4. Visualization
