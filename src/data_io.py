@@ -27,8 +27,8 @@ class IO:
     path = self.get_path_by_data_type(data_type)
     path.mkdir(exist_ok=True)
     file = path / self.get_file_name_by_data_type(data_type)
-    df.to_csv(file)
     print("Try to save new file as" + str(file))
+    df.to_csv(file)
     print("New data saved!")
   
   def get_data(self):

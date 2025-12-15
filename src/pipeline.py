@@ -32,13 +32,16 @@ def start(
   cleared_df = clear_out_range_rows(cleared_df, "total_expression", MAX)
   print("\n--- Number of Deleted Low Quality Cell ---")
   print(f"Deleted Low Quality Cell Data(Rows): {len(cleaned_df) - len(cleared_df)}")
-  print(cleared_df)
+  print(cleared_df.describe())
 
   # 3. normalization & stabilization
   normalized_df = normalize(cleared_df, "total_expression", NORMALIZE_SCALE)
+  print("\n--- Normalized Expression Level ---")
+  print(normalized_df.describe())
+
   stabilized_df = stabilize(normalized_df)
-  print("\n--- Normalized, Stabilized Expression Level ---")
-  print(stabilized_df)
+  print("\n--- Stabilized Expression Level ---")
+  print(stabilized_df.describe())
 
   # save comparable data as file
   io.create_comparable_data(stabilized_df)
@@ -47,5 +50,5 @@ def start(
   visualize_expression_level_distribution(df, "total_expression", "Total Expression per Cell (Raw Data)", BINS)
   visualize_expression_level_distribution(cleared_df, "total_expression", "Total Expression per Cell (After QC)", BINS)
 
-  visualize_expression_level_of_gene(normalized_df, GENE_NAME, f"{GENE_NAME} Distribution (Before Stabilized)", BINS)
-  visualize_expression_level_of_gene(stabilized_df, GENE_NAME, f"{GENE_NAME} Distribution (After Stabilized)", BINS)
+  visualize_expression_level_of_gene(clear_low_quality_cell(normalized_df, GENE_NAME, 1), GENE_NAME, f"{GENE_NAME} Distribution (Before Stabilized)", BINS)
+  visualize_expression_level_of_gene(clear_low_quality_cell(stabilized_df, GENE_NAME, 1), GENE_NAME, f"{GENE_NAME} Distribution (After Stabilized)", BINS)
